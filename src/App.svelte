@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from "svelte";
-	import Plotly from "plotly.js-dist";
+	import Plotly, { add } from "plotly.js-dist";
 	import { onDestroy } from "svelte";
 
 	let inputsConfig = [
@@ -109,8 +109,8 @@
 			"ParityBlock Meta data on 100TB": [
 				amountOfParityBlocks * parityBlockMetadataSize,
 				"Bytes",
-				BytesToMb(amountOfParityBlocks * parityBlockMetadataSize),
-				"MB",
+				BytesToTb(amountOfParityBlocks * parityBlockMetadataSize),
+				"TB",
 			],
 			"DHTMeta Size relative to ParityBlock": [
 				(dhtMetadataSize / parityBlockSize) * 100,
@@ -172,10 +172,10 @@
 		return bytes / 1024 / 1024;
 	}
 
-	let rangeKMin = 6;
-	let rangeKMax = 42;
-	let rangeNMin = 3;
-	let rangeNMax = 21;
+	let rangeKMin = 3;
+	let rangeKMax = 64;
+	let rangeNMin = 2;
+	let rangeNMax = 32;
 
 	const range = (start, stop, step) =>
 		Array.from(
@@ -205,8 +205,6 @@
 			});
 		});
 
-		console.log(zValues, kRange, nRange);
-
 		let data = [
 			{
 				x: nRange,
@@ -214,6 +212,7 @@
 				z: zValues,
 				type: "surface",
 				colorscale: "Viridis",
+				showscale: false,
 				contours: {
 					z: {
 						show: true,
@@ -225,22 +224,23 @@
 			},
 		];
 		let layout = {
-			title: "Storage Effectiveness Surface Plot",
+			title: "Storage Effectiveness for different k and n values",
 			scene: {
-				camera: { eye: { x: 3, y: 0.9, z: 0.5 } },
+				camera: { eye: { x: 3, y: 0.9, z: 1.5 } },
 				xaxis: { title: "X: n (Block Ok to lose)" },
 				yaxis: { title: "Y: k (Split in Blocks)" },
 				zaxis: { title: "Z: Storage Effectiveness (%)" },
 			},
-			showlegend: true,
+			showlegend: false,
 			autosize: true,
-			width: 900,
-			height: 900,
+			// width: 900,
+			// height: 900,
 			margin: {
-				l: 65,
-				r: 50,
-				b: 65,
-				t: 90,
+				l: 0,
+				r: 0,
+				b: 0,
+				t: 45,
+				pad: 0,
 			},
 			paper_bgcolor: "rgba(34, 34, 34, 1)",
 			plot_bgcolor: "rgba(34, 34, 34, 1)",
@@ -265,23 +265,26 @@
 	});
 </script>
 
-<body>
-	<h1>Data Storage Calculator</h1>
-	<div class="bigInputs">
-		{#each inputsConfig as input}
-			{#if input.big}
-				<div class="input-group {input.big ? 'big' : 'small'}">
-					<label for={input.name}>{input.label}</label>
-					<input
-						type="number"
-						bind:value={inputValues[input.name]}
-						on:change={generateGraph}
-						step={input.step || "any"}
-					/>
-				</div>
-			{/if}
-		{/each}
-	</div>
+<h1>OuroborosDB Data Storage Calculator</h1>
+Single Calculation:
+<div class="inputs">
+	{#each inputsConfig as input}
+		{#if input.big}
+			<div class="input-group {input.big ? 'big' : 'small'}">
+				<label for={input.name}>{input.label}</label>
+				<input
+					type="number"
+					bind:value={inputValues[input.name]}
+					on:change={generateGraph}
+					step={input.step || "any"}
+				/>
+			</div>
+		{/if}
+	{/each}
+</div>
+
+<details>
+	<summary>Advanced Inputs</summary>
 	<div class="inputs">
 		{#each inputsConfig as input}
 			{#if !input.big}
@@ -297,119 +300,181 @@
 			{/if}
 		{/each}
 	</div>
+</details>
 
-	<div class="results">
-		<h2>Results</h2>
-		{#if results}
-			<table>
-				{#each Object.keys(results) as key}
-					<tr>
-						<td>{key}</td>
-						{#if typeof results[key] === "object"}
-							{#each results[key] as result}
+<div class="results">
+	<h2>Results</h2>
+	{#if results}
+		<table>
+			{#each Object.keys(results) as key}
+				<tr>
+					<td>{key}</td>
+					{#if typeof results[key] === "object"}
+						{#each results[key] as result}
+							{#if typeof result === "number"}
+								<td>{result.toFixed(2)}</td>
+							{:else}
 								<td>{result}</td>
-							{/each}
-						{:else}
-							<td>{results[key]}</td>
-						{/if}
-					</tr>
-				{/each}
-			</table>
-		{/if}
-	</div>
+							{/if}
+						{/each}
+					{:else if typeof results[key] === "number"}
+						<td>{results[key].toFixed(2)}</td>
+					{:else}
+						<td>{results[key]}</td>
+					{/if}
+				</tr>
+			{/each}
+		</table>
+	{/if}
+</div>
 
-	<div class="inputs">
-		<div class="input-group">
-			<label for="kMin">k range min</label>
-			<input
-				name="kMin"
-				type="number"
-				bind:value={rangeKMin}
-				on:change={generateGraph}
-				step="1"
-			/>
-		</div>
-		<div class="input-group">
-			<label for="kMax">k range max</label>
-			<input
-				name="kMax"
-				type="number"
-				bind:value={rangeKMax}
-				on:change={generateGraph}
-				step="1"
-			/>
-		</div>
-		<div class="input-group">
-			<label for="nMin">n range min</label>
-			<input
-				name="nMin"
-				type="number"
-				bind:value={rangeNMin}
-				on:change={generateGraph}
-				step="1"
-			/>
-		</div>
-		<div class="input-group">
-			<label for="nMax">n range max</label>
-			<input
-				name="nMax"
-				type="number"
-				bind:value={rangeNMax}
-				on:change={generateGraph}
-				step="1"
-			/>
-		</div>
-	</div>
+<div id="graphContainer" bind:this={graphContainer}></div>
 
-	<div id="graphContainer" bind:this={graphContainer}></div>
-</body>
+Graph:
+<div class="inputs">
+	<div class="input-group">
+		<label for="kMin">k range min</label>
+		<input
+			name="kMin"
+			type="number"
+			bind:value={rangeKMin}
+			on:change={generateGraph}
+			step="1"
+		/>
+	</div>
+	<div class="input-group">
+		<label for="kMax">k range max</label>
+		<input
+			name="kMax"
+			type="number"
+			bind:value={rangeKMax}
+			on:change={generateGraph}
+			step="1"
+		/>
+	</div>
+	<div class="input-group">
+		<label for="nMin">n range min</label>
+		<input
+			name="nMin"
+			type="number"
+			bind:value={rangeNMin}
+			on:change={generateGraph}
+			step="1"
+		/>
+	</div>
+	<div class="input-group">
+		<label for="nMax">n range max</label>
+		<input
+			name="nMax"
+			type="number"
+			bind:value={rangeNMax}
+			on:change={generateGraph}
+			step="1"
+		/>
+	</div>
+</div>
+
+<div class="credits">(c) 2024 Mia Heidenstedt and contributors</div>
 
 <style>
 	:global(html) {
-		background-color: #222;
+		background: #1e1e2f;
+		margin-bottom: 5em;
+		padding-bottom: 5em;
 	}
 
 	:global(body) {
-		color: #fff !important;
-	}
-
-	.inputs {
-		display: flex;
-		flex-wrap: wrap;
+		font-family: "Roboto", sans-serif;
+		background: #1e1e2f;
+		color: #ffffff;
+		margin: 0;
+		padding: 0 5px;
+		max-width: 60rem;
+		margin: 0 auto;
 	}
 
 	input {
-		background-color: #444;
-		color: #fff;
-		border: 1px solid #666;
-		padding: 5px;
+		background-color: #333a4d;
+		color: #ffffff;
+		border: none;
+		padding: 10px;
+		border-radius: 5px;
 		width: 100%;
-		margin-bottom: 10px;
+		margin-bottom: 15px;
+		transition: all 0.3s ease-in-out;
+	}
+
+	input:focus {
+		border: 2px solid #00aaff;
 	}
 
 	label {
 		display: block;
-		margin-bottom: 5px;
+		margin-bottom: 8px;
+		font-weight: bold;
+		color: #c9d1d9;
+	}
+
+	h1 {
+		color: #00aaff;
+		text-align: center;
+		margin-bottom: 30px;
 	}
 
 	#graphContainer {
+		background-color: #2b2b3d;
+		border-radius: 8px;
+		padding: 0;
+		margin: 20px 0;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+		height: 40em;
+		overflow: hidden;
+	}
+
+	.results {
+		background-color: #1f1f2e;
+		padding: 20px;
+		padding-top: 0;
+		border-radius: 8px;
+		margin: 30px 0;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+		max-width: 100%;
+		overflow-x: auto;
+	}
+
+	table {
 		width: 100%;
-		height: 400px;
+		border-collapse: collapse;
+	}
+
+	table td {
+		padding: 10px;
+		border: 1px solid #333a4d;
+	}
+
+	.inputs {
+		display: grid;
+		gap: 1em;
+		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+		align-items: end;
+		margin: 5px 0;
 	}
 
 	.input-group {
-		display: inline-block;
 		margin-bottom: 15px;
-		padding: 1em;
 	}
 
-	.input-group.big {
-		width: 50%;
-		margin: 0 auto;
-		display: block;
+	.credits {
+		height: 5rem;
+		padding: 0px 5rem;
+		display: flex;
+		align-content: center;
+		justify-content: center;
+		align-items: center;
 	}
 
-	.input-group.small {
-		font-size: 0.8em;
+	summary {
+		cursor: pointer;
+		padding-bottom: 1em;
 	}
 </style>
