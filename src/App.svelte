@@ -33,11 +33,6 @@
 			value: 0.0,
 		},
 		{
-			name: "chunkAmountNeeded",
-			label: "Chunk Amount Needed",
-			value: 400000000,
-		},
-		{
 			name: "parityBlockMetadataSize",
 			label: "Parity Block Metadata Size (Byte)",
 			value: 2373,
@@ -66,10 +61,10 @@
 			chunkOverhead,
 			parityBlockMetadataSize,
 			dhtMetadataSize,
-			chunkAmountNeeded,
 		} = inputVal;
 
 		let bytesToStore = TbToBytes(tbToStore);
+		let chunkAmountNeeded = Math.ceil(bytesToStore / chunkSize);
 
 		let overheadFactor = n / k;
 		let parityBlockSize = (chunkSize / k) * (1 + overheadFactor);
@@ -83,6 +78,7 @@
 		return {
 			"overhead Factor": overheadFactor,
 			"overhead by Erasure Coding": [overheadFactor * 100, "%"],
+			"Chunk Amount Needed": [chunkAmountNeeded, "Chunks"],
 			"Raw + pure Erasure Coding overhead": [
 				bytesToStore * overheadFactor + bytesToStore,
 				"Bytes",
