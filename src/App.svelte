@@ -227,6 +227,7 @@
 		let layout = {
 			title: "Storage Effectiveness Surface Plot",
 			scene: {
+				camera: { eye: { x: 3, y: 0.9, z: 0.5 } },
 				xaxis: { title: "X: n (Block Ok to lose)" },
 				yaxis: { title: "Y: k (Split in Blocks)" },
 				zaxis: { title: "Z: Storage Effectiveness (%)" },
