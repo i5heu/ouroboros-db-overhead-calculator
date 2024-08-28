@@ -2,6 +2,7 @@
 	import { onMount } from "svelte";
 	import Plotly, { add } from "plotly.js-dist";
 	import { onDestroy } from "svelte";
+	import Decimal from "decimal.js";
 
 	let inputsConfig = [
 		{
@@ -13,13 +14,13 @@
 		{
 			name: "k",
 			label: "k (Split in Blocks)",
-			value: 6,
+			value: 20,
 			big: true,
 		},
 		{
 			name: "n",
 			label: "n (Block Ok to losse)",
-			value: 3,
+			value: 4,
 			big: true,
 		},
 		{
@@ -42,6 +43,16 @@
 			label: "DHT Metadata Size (Byte)",
 			value: 674,
 		},
+		{
+			name: "annualFailureRatePercent",
+			label: "Annual failure rate of drive (%)",
+			value: 0.41, // x/100 = 0.0041
+		},
+		{
+			name: "hoursToRebuild",
+			label: "hours to rebuild a failed drive",
+			value: 156,
+		},
 	];
 
 	let inputValues = {};
@@ -52,6 +63,38 @@
 	let graphContainer;
 	let results;
 
+	function factorial(n) {
+		if (n === 0 || n === 1) return 1;
+		let result = n;
+		while (n > 1) {
+			n--;
+			result *= n;
+		}
+		return result;
+	}
+
+	function countNines(storageDurability) {
+		let durabilityPercentage = storageDurability
+			.mul(100)
+			.toFixed(30)
+			.toString(); // Adjust precision as needed
+
+		let tmp = durabilityPercentage.replace(".", "");
+
+		let nineCount = 0;
+		for (let char of tmp) {
+			if (char === "9") {
+				nineCount++;
+			} else {
+				if (Number(char) > 4) {
+					nineCount++;
+				}
+				break;
+			}
+		}
+
+		return nineCount;
+	}
 	function calculate(inputVal) {
 		let {
 			tbToStore,
@@ -61,6 +104,8 @@
 			chunkOverhead,
 			parityBlockMetadataSize,
 			dhtMetadataSize,
+			hoursToRebuild,
+			annualFailureRatePercent,
 		} = inputVal;
 
 		let bytesToStore = TbToBytes(tbToStore);
@@ -75,13 +120,38 @@
 			parityAndMetaDHTMetaSize +
 			bytesToStore * (1 + chunkOverhead) * (1 + overheadFactor);
 
+		Decimal.config({
+			precision: 50, // Increase precision
+			rounding: Decimal.ROUND_HALF_UP,
+		});
+
+		// Durability Calculations with Decimal.js
+		let hoursPerYear = new Decimal(365).mul(24);
+		let durabilityLambda = new Decimal(annualFailureRatePercent)
+			.div(100)
+			.mul(k)
+			.div(hoursPerYear.div(hoursToRebuild));
+
+		let e = Decimal.exp(-1 * durabilityLambda);
+
+		let poissonProbabilityInRebuildTime = e.mul(
+			Decimal.pow(durabilityLambda, n).div(factorial(n)),
+		);
+
+		let storageDurability = Decimal.pow(
+			new Decimal(1).minus(poissonProbabilityInRebuildTime),
+			hoursPerYear.div(hoursToRebuild),
+		);
+
+		let nines = countNines(storageDurability);
+
 		return {
 			"overhead Factor": overheadFactor,
 			"overhead by Erasure Coding": [overheadFactor * 100, "%"],
 			"Chunk Amount Needed": [chunkAmountNeeded, "Chunks"],
 			"Raw + pure Erasure Coding overhead": [
-				bytesToStore * overheadFactor + bytesToStore,
-				"Bytes",
+				BytesToMb(bytesToStore * overheadFactor + bytesToStore),
+				"MB",
 				BytesToTb(bytesToStore * overheadFactor + bytesToStore),
 				"TB",
 			],
@@ -102,9 +172,9 @@
 				"%",
 			],
 			"Amount of Parity Blocks": [amountOfParityBlocks, "Blocks"],
-			"ParityBlock Meta data on 100TB": [
-				amountOfParityBlocks * parityBlockMetadataSize,
-				"Bytes",
+			"Total ParityBlock Meta Size": [
+				BytesToMb(amountOfParityBlocks * parityBlockMetadataSize),
+				"MB",
 				BytesToTb(amountOfParityBlocks * parityBlockMetadataSize),
 				"TB",
 			],
@@ -112,9 +182,9 @@
 				(dhtMetadataSize / parityBlockSize) * 100,
 				"%",
 			],
-			"DHTMeta Size on 100TB": [
-				amountOfParityBlocks * dhtMetadataSize,
-				"Bytes",
+			"Total DHTMeta Size": [
+				BytesToMb(amountOfParityBlocks * dhtMetadataSize),
+				"MB",
 				BytesToTb(amountOfParityBlocks * dhtMetadataSize),
 				"TB",
 			],
@@ -124,15 +194,13 @@
 					100,
 				"%",
 			],
-			"ParityMeta+DHTMeta on 100TB": [
-				parityAndMetaDHTMetaSize,
-				"Bytes",
+			"Total ParityMeta+DHTMeta": [
+				BytesToMb(parityAndMetaDHTMetaSize),
+				"MB",
 				BytesToTb(parityAndMetaDHTMetaSize),
 				"TB",
 			],
 			"Raw + Erasure Coding incl. Metadata": [
-				rawAndErasureCodingOverheadWithMeta,
-				"Bytes",
 				BytesToTb(rawAndErasureCodingOverheadWithMeta),
 				"TB",
 			],
@@ -143,10 +211,13 @@
 				"%",
 			],
 			"Storage Effectiveness": [
-				(1 -
-					(rawAndErasureCodingOverheadWithMeta - bytesToStore) /
-						bytesToStore) *
-					100,
+				(bytesToStore / rawAndErasureCodingOverheadWithMeta) * 100,
+				"%",
+			],
+			"Storage Durability": [
+				"" + nines,
+				"nines",
+				storageDurability.mul(100).toPrecision(15),
 				"%",
 			],
 		};
@@ -299,8 +370,19 @@ Single Calculation:
 </details>
 
 <div class="results">
-	<h2>Results</h2>
+	<h2>Results:</h2>
 	{#if results}
+		<p>
+			For {inputValues.tbToStore} TB of data you need
+			<strong>
+				{results["Raw + Erasure Coding incl. Metadata"][0].toFixed(2)} TB</strong
+			>
+			of storage space.<br />
+			This results in a storage effectiveness of
+			<strong>{results["Storage Effectiveness"][0].toFixed(2)}%</strong>
+			with a data durability of {results["Storage Durability"][0]} nines or
+			{results["Storage Durability"][2]}%.
+		</p>
 		<table>
 			{#each Object.keys(results) as key}
 				<tr>
