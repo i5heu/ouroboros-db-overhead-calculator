@@ -332,6 +332,12 @@
 	});
 </script>
 
+<svelte:head>
+	{#if browser}
+		<script async defer src="https://buttons.github.io/buttons.js"></script>
+	{/if}
+</svelte:head>
+
 <h1>OuroborosDB Data Storage Calculator</h1>
 <p>
 	This calculator helps you to estimate the storage space needed for your data
