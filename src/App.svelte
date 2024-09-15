@@ -333,6 +333,26 @@
 </script>
 
 <h1>OuroborosDB Data Storage Calculator</h1>
+<p>
+	This calculator helps you to estimate the storage space needed for your data
+	and the durability of the storage system and what are the most space
+	effective erasure settings.<br />
+	You can use this calculator for other software, but it is build for
+	<a href="https://github.com/i5heu/ouroboros-db">OuroborosDB</a>.
+</p>
+<p style="display: flex; align-items: center;">
+	Give this Project a Github Star:
+	<a
+		class="github-button"
+		href="https://github.com/i5heu/ouroboros-db-overhead-calculator"
+		data-color-scheme="no-preference: light; light: light; dark: dark;"
+		data-size="large"
+		data-show-count="true"
+		aria-label="Star i5heu/ouroboros-db-overhead-calculator on GitHub"
+		>Star</a
+	>
+</p>
+
 Single Calculation:
 <div class="inputs">
 	{#each inputsConfig as input}
