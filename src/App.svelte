@@ -476,7 +476,9 @@ Graph:
 	</div>
 </div>
 
-<div class="credits">(c) 2024 Mia Heidenstedt and contributors</div>
+<div class="credits">
+	(c) 2024 <a href="https://heidenstedt.org/">Mia Heidenstedt</a> and contributors
+</div>
 
 <style>
 	:global(html) {
@@ -502,6 +504,7 @@ Graph:
 		padding: 10px;
 		border-radius: 5px;
 		width: 100%;
+		margin-right: 5px;
 		margin-bottom: 15px;
 		transition: all 0.3s ease-in-out;
 	}
