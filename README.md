@@ -1,107 +1,61 @@
-# This repo is no longer maintained. Consider using `npm init vite` and selecting the `svelte` option or — if you want a full-fledged app framework — use [SvelteKit](https://kit.svelte.dev), the official application framework for Svelte.
+# OuroborosDB Overhead Calculator
 
----
-
-# svelte app
-
-This is a project template for [Svelte](https://svelte.dev) apps. It lives at https://github.com/sveltejs/template.
-
-To create a new project based on this template using [degit](https://github.com/Rich-Harris/degit):
-
-```bash
-npx degit sveltejs/template svelte-app
-cd svelte-app
-```
-
-*Note that you will need to have [Node.js](https://nodejs.org) installed.*
+This project is a web-based calculator to estimate storage space requirements and durability for data storage systems that use erasure coding. Designed specifically for [OuroborosDB](https://github.com/i5heu/ouroboros-db), it allows to calculate the estimated storage overhead and effectiveness based on different configurations of data chunks and parity blocks.
 
 
-## Get started
+## Live Demo
 
-Install the dependencies...
+Check out the live version of the application [here](https://i5heu.github.io/ouroboros-db-overhead-calculator/).
 
-```bash
-cd svelte-app
-npm install
-```
+[![OuroborosDB Overhead Calculator](.media/screenshot.png)](https://i5heu.github.io/ouroboros-db-overhead-calculator/)
 
-...then start [Rollup](https://rollupjs.org):
+## Getting Started
+
+### Prerequisites
+
+Ensure you have Node.js installed on your system. You can install Node.js from [here](https://nodejs.org/).
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/i5heu/ouroboros-db-overhead-calculator.git
+   ```
+
+2. Navigate to the project directory:
+   ```bash
+   cd ouroboros-db-overhead-calculator
+   ```
+
+3. Install the dependencies:
+   ```bash
+   npm install
+   ```
+
+### Running the Application
+
+To run the development server, use the following command:
 
 ```bash
 npm run dev
 ```
+This will start the application in development mode. The app will be available at the prompted URL.
 
-Navigate to [localhost:8080](http://localhost:8080). You should see your app running. Edit a component file in `src`, save it, and reload the page to see your changes.
 
-By default, the server will only respond to requests from localhost. To allow connections from other computers, edit the `sirv` commands in package.json to include the option `--host 0.0.0.0`.
-
-If you're using [Visual Studio Code](https://code.visualstudio.com/) we recommend installing the official extension [Svelte for VS Code](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode). If you are using other editors you may need to install a plugin in order to get syntax highlighting and intellisense.
-
-## Building and running in production mode
-
-To create an optimised version of the app:
-
+To build the application for production:
 ```bash
 npm run build
 ```
 
-You can run the newly built app with `npm run start`. This uses [sirv](https://github.com/lukeed/sirv), which is included in your package.json's `dependencies` so that the app will work when you deploy to platforms like [Heroku](https://heroku.com).
-
-
-## Single-page app mode
-
-By default, sirv will only respond to requests that match files in `public`. This is to maximise compatibility with static fileservers, allowing you to deploy your app anywhere.
-
-If you're building a single-page app (SPA) with multiple routes, sirv needs to be able to respond to requests for *any* path. You can make it so by editing the `"start"` command in package.json:
-
-```js
-"start": "sirv public --single"
-```
-
-## Using TypeScript
-
-This template comes with a script to set up a TypeScript development environment, you can run it immediately after cloning the template with:
+Then, you can serve the build using:
 
 ```bash
-node scripts/setupTypeScript.js
+npm run start
 ```
 
-Or remove the script via:
+This will serve the static files from the `public` folder.
 
-```bash
-rm scripts/setupTypeScript.js
-```
+## License
+ouroboros-db-overhead-calculator (c) 2024 [Mia Heidenstedt](https://heidenstedt.org/) and contributors
 
-If you want to use `baseUrl` or `path` aliases within your `tsconfig`, you need to set up `@rollup/plugin-alias` to tell Rollup to resolve the aliases. For more info, see [this StackOverflow question](https://stackoverflow.com/questions/63427935/setup-tsconfig-path-in-svelte).
-
-## Deploying to the web
-
-### With [Vercel](https://vercel.com)
-
-Install `vercel` if you haven't already:
-
-```bash
-npm install -g vercel
-```
-
-Then, from within your project folder:
-
-```bash
-cd public
-vercel deploy --name my-project
-```
-
-### With [surge](https://surge.sh/)
-
-Install `surge` if you haven't already:
-
-```bash
-npm install -g surge
-```
-
-Then, from within your project folder:
-
-```bash
-npm run build
-surge public my-project.surge.sh
-```
+SPDX-License-Identifier: AGPL-3.0
