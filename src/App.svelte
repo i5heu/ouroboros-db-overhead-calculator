@@ -333,9 +333,7 @@
 </script>
 
 <svelte:head>
-	{#if browser}
-		<script async defer src="https://buttons.github.io/buttons.js"></script>
-	{/if}
+	<script async defer src="https://buttons.github.io/buttons.js"></script>
 </svelte:head>
 
 <h1>OuroborosDB Data Storage Calculator</h1>
